@@ -4,302 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>デトックスチャレンジレポート</title>
-
 <style>
-:root{
-  --main:#06c755;
-  --bg:#f5f7f5;
-  --card:#ffffff;
-}
-
-body{
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:var(--bg);
-  margin:0;
-  padding:12px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:15px;
-  padding:15px;
-  margin-bottom:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-
-h1{
-  text-align:center;
-  font-size:1.4rem;
-}
-
-h2{
-  margin-top:0;
-  color:#2a7d44;
-}
-
-label{
-  display:block;
-  margin-top:8px;
-  font-weight:bold;
-}
-
-input,textarea,select{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  box-sizing:border-box;
-  font-size:16px;
-}
-
-textarea{
-  min-height:70px;
-}
-
-.score-group{
-  display:flex;
-  gap:8px;
-}
-
-.score-group label{
-  flex:1;
-  text-align:center;
-}
-
-.radio-box{
-  width:100%;
-  padding:8px;
-}
-
-button{
-  width:100%;
-  border:none;
-  border-radius:12px;
-  padding:16px;
-  font-size:18px;
-}
-
-.previewBtn{
-  background:#007aff;
-  color:white;
-  margin-bottom:10px;
-}
-
-.lineBtn{
-  background:#06c755;
-  color:white;
-}
-
-.rangeValue{
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-  color:#2a7d44;
-}
-
-#preview{
-  white-space:pre-wrap;
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-  margin-top:15px;
-}
-
-@media (prefers-color-scheme: dark){
-  body{
-    background:#111;
-    color:white;
-  }
-  .card{
-    background:#222;
-  }
-  input,textarea,select{
-    background:#333;
-    color:white;
-    border-color:#555;
-  }
-}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f7f5;margin:0;padding:12px;}
+.card{background:#fff;border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);} 
+h1{text-align:center;} h2{color:#2a7d44;} h3{margin-top:15px;}
+input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;font-size:16px;}
+textarea{min-height:70px;} 
+button{width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;color:white;margin-top:10px;}
+.previewBtn{background:#007aff;} .lineBtn{background:#06c755;}
+.radio-row{display:flex;gap:20px;margin:8px 0 12px 0;} .radio-row label{display:flex;align-items:center;gap:4px;margin:0;}
+.rangeValue{text-align:center;font-size:22px;font-weight:bold;color:#2a7d44;} 
+#preview{white-space:pre-wrap;background:white;padding:15px;border-radius:12px;margin-top:15px;}
 </style>
-</head>
-
-<body>
-
+</head><body>
 <h1>📩 デトックスチャレンジ</h1>
-
-<div class="card">
-<label>DAY</label>
-<input id="day">
-</div>
-
-<div class="card">
-<h2>🌿 今日のMISSION</h2>
-
-<label>MISSION①</label>
-<input id="m1">
-
-<input type="radio" name="r1" value="○" checked>○
-<input type="radio" name="r1" value="△">△
-<input type="radio" name="r1" value="×">×
-
-<label>MISSION②</label>
-<input id="m2">
-
-<input type="radio" name="r2" value="○" checked>○
-<input type="radio" name="r2" value="△">△
-<input type="radio" name="r2" value="×">×
-
-<label>MISSION③</label>
-<input id="m3">
-
-<input type="radio" name="r3" value="○" checked>○
-<input type="radio" name="r3" value="△">△
-<input type="radio" name="r3" value="×">×
-</div>
-
-<div class="card">
-<h2>🍽 食べたもの</h2>
-
-<label>朝</label>
-<textarea id="breakfast"></textarea>
-
-<label>昼</label>
-<textarea id="lunch"></textarea>
-
-<label>おやつ</label>
-<textarea id="snack"></textarea>
-
-<label>夜</label>
-<textarea id="dinner"></textarea>
-</div>
-
-<div class="card">
-<h2>💧 水分</h2>
-
-<label>水(L)</label>
-<input type="number" step="0.1" id="water">
-
-<label>その他</label>
-<input id="otherDrink">
-</div>
-
-<div class="card">
-<h2>💊 サプリメント</h2>
-
-<select id="supplement">
-<option>規定通り</option>
-<option>飲み忘れあり</option>
-</select>
-</div>
-
-<div class="card">
-<h2>🏃 活動・運動</h2>
-
-<textarea id="exercise"></textarea>
-
-<label>朝</label>
-<select id="move1">
-<option>○</option>
-<option>△</option>
-<option>×</option>
-</select>
-
-<label>昼</label>
-<select id="move2">
-<option>○</option>
-<option>△</option>
-<option>×</option>
-</select>
-
-<label>夜</label>
-<select id="move3">
-<option>○</option>
-<option>△</option>
-<option>×</option>
-</select>
-</div>
-
-<div class="card">
-<h2>😴 睡眠</h2>
-
-<label>就寝</label>
-<input type="time" id="sleep">
-
-<label>起床</label>
-<input type="time" id="wake">
-
-<label>中途覚醒</label>
-<input id="awake">
-
-<label>朝の目覚め</label>
-<select id="morning">
-<option>良い</option>
-<option>普通</option>
-<option>いまいち</option>
-</select>
-</div>
-
-<div class="card">
-<h2>🍰 甘いもの欲求</h2>
-
-<div class="rangeValue" id="sweetValue">0</div>
-<input type="range" min="0" max="4" value="0" id="sweet"
-oninput="sweetValue.innerText=this.value">
-</div>
-
-<div class="card">
-<h2>☕ カフェイン欲求</h2>
-
-<div class="rangeValue" id="caffeineValue">0</div>
-<input type="range" min="0" max="4" value="0" id="caffeine"
-oninput="caffeineValue.innerText=this.value">
-</div>
-
-<div class="card">
-<h2>⚡ 午後の疲れ・眠気</h2>
-
-<div class="rangeValue" id="fatigueValue">0</div>
-<input type="range" min="0" max="4" value="0" id="fatigue"
-oninput="fatigueValue.innerText=this.value">
-</div>
-
-<div class="card">
-<h2>💩 お通じ</h2>
-
-<select id="bowel">
-<option>あり</option>
-<option>なし</option>
-</select>
-</div>
-
-<div class="card">
-<h2>⚖️ 体重</h2>
-
-<input type="number" step="0.1" id="weight">
-</div>
-
-<div class="card">
-<h2>📝 今日の気づき</h2>
-
-<textarea id="note"></textarea>
-</div>
-
-<button class="previewBtn" onclick="preview()">内容確認</button>
-<button class="lineBtn" onclick="sendLine()">LINEで送る</button>
-
-<div id="preview"></div>
-
+<div class="card"><label>DAY</label><input id="day" readonly></div>
+<div class="card"><h2>🌿 今日のMISSION</h2>
+<label>MISSION①</label><input id="m1"><div class="radio-row"><label><input type="radio" name="r1" value="○" checked>○</label><label><input type="radio" name="r1" value="△">△</label><label><input type="radio" name="r1" value="×">×</label></div>
+<label>MISSION②</label><input id="m2"><div class="radio-row"><label><input type="radio" name="r2" value="○" checked>○</label><label><input type="radio" name="r2" value="△">△</label><label><input type="radio" name="r2" value="×">×</label></div>
+<label>MISSION③</label><input id="m3"><div class="radio-row"><label><input type="radio" name="r3" value="○" checked>○</label><label><input type="radio" name="r3" value="△">△</label><label><input type="radio" name="r3" value="×">×</label></div></div>
+<div class="card"><h2>🍽 食べたもの</h2><label>🍋 朝</label><textarea id="breakfast"></textarea><label>🍙 昼</label><textarea id="lunch"></textarea><label>🍪 おやつ</label><textarea id="snack"></textarea><label>🌙 夜</label><textarea id="dinner"></textarea></div>
+<div class="card"><h2>💧 水分</h2><label>水(L)</label><input type="number" step="0.1" id="water"><label>その他</label><input id="otherDrink"></div>
+<div class="card"><h2>💊 サプリメント</h2><select id="supplement"><option>規定通り</option><option>飲み忘れあり</option></select></div>
+<div class="card"><h2>🏃 活動・運動</h2><textarea id="exercise"></textarea><h3>食後に動けた</h3><label>朝</label><select id="move1"><option>○</option><option>△</option><option>×</option></select><label>昼</label><select id="move2"><option>○</option><option>△</option><option>×</option></select><label>夜</label><select id="move3"><option>○</option><option>△</option><option>×</option></select></div>
+<div class="card"><h2>😴 睡眠</h2><label>就寝</label><input type="time" id="sleep"><label>起床</label><input type="time" id="wake"><label>中途覚醒</label><select id="awake"><option>なし</option><option>あり</option></select><label>朝の目覚め</label><select id="morning"><option>良い</option><option>普通</option><option>いまいち</option></select></div>
+<div class="card"><h2>🍰 甘いもの欲求</h2><div class="rangeValue" id="sweetValue">0</div><input type="range" min="0" max="4" value="0" id="sweet" oninput="sweetValue.innerText=this.value"></div>
+<div class="card"><h2>☕ カフェイン欲求</h2><div class="rangeValue" id="caffeineValue">0</div><input type="range" min="0" max="4" value="0" id="caffeine" oninput="caffeineValue.innerText=this.value"></div>
+<div class="card"><h2>⚡ 午後の疲れ・眠気</h2><div class="rangeValue" id="fatigueValue">0</div><input type="range" min="0" max="4" value="0" id="fatigue" oninput="fatigueValue.innerText=this.value"></div>
+<div class="card"><h2>💩 お通じ</h2><select id="bowel"><option>あり</option><option>なし</option></select></div>
+<div class="card"><h2>⚖️ 体重</h2><input type="number" step="0.1" id="weight"></div>
+<div class="card"><h2>📝 今日の気づき・身体の変化</h2><textarea id="note"></textarea></div>
+<button class="previewBtn" onclick="previewText()">内容確認</button><button class="lineBtn" onclick="sendLine()">LINEで送る</button><div id="preview"></div>
 <script>
-
-document.getElementById("day").value=
-new Date().toLocaleDateString('ja-JP');
-
-function getRadio(name){
-  return document.querySelector("input[name='"+name+"']:checked").value;
-}
-
-function buildText(){
-
-return `📩 DAY ${day.value} デトックスチャレンジレポート
+document.getElementById('day').value=new Date().toLocaleDateString('ja-JP');
+function getRadio(n){return document.querySelector('input[name="'+n+'"]:checked').value;}
+function buildText(){return `📩 DAY ${day.value} デトックスチャレンジレポート
 
 🌿 今日のMISSION
 
@@ -327,8 +66,8 @@ ${snack.value}
 ${dinner.value}
 
 💧 水分
-水 ${water.value} L
-その他（${otherDrink.value}）
+水 ${water.value}L
+＋ その他（${otherDrink.value}）
 
 💊 サプリメント
 ${supplement.value}
@@ -342,16 +81,14 @@ ${exercise.value}
 夜 ${move3.value}
 
 😴 睡眠
-就寝 ${sleep.value}
-起床 ${wake.value}
-中途覚醒 ${awake.value}
-朝の目覚め ${morning.value}
+就寝：${sleep.value}
+起床：${wake.value}
+中途覚醒：${awake.value}
+朝の目覚め：${morning.value}
 
-🍰 甘いもの
-${sweet.value}
-
-☕ カフェイン
-${caffeine.value}
+🍰 今日の欲求
+甘いもの：${sweet.value}
+カフェイン：${caffeine.value}
 
 ⚡ 午後の疲れ・眠気
 ${fatigue.value}
@@ -363,21 +100,7 @@ ${bowel.value}
 ${weight.value}kg
 
 📝 今日の気づき・身体の変化
-${note.value}`;
-}
-
-function preview(){
-  document.getElementById("preview").textContent=buildText();
-}
-
-function sendLine(){
-  const text=buildText();
-  location.href=
-  "https://line.me/R/msg/text/?"+
-  encodeURIComponent(text);
-}
-
-</script>
-
-</body>
-</html>
+${note.value}`;}
+function previewText(){document.getElementById('preview').innerText=buildText();}
+function sendLine(){location.href='https://line.me/R/msg/text/?'+encodeURIComponent(buildText());}
+</script></body></html>
