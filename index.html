@@ -5,21 +5,29 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>デトックスチャレンジレポート</title>
 <style>
+:root{
+  --bg:#f5f7f5;
+  --card:#ffffff;
+  --green:#2a7d44;
+  --line:#06c755;
+  --blue:#007aff;
+  --orange:#ff9500;
+}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-  background:#f5f7f5;
+  background:var(--bg);
   margin:0;
   padding:12px;
 }
 .card{
-  background:#fff;
+  background:var(--card);
   border-radius:15px;
   padding:15px;
   margin-bottom:12px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 h1{text-align:center;font-size:1.45rem;}
-h2{color:#2a7d44;margin-top:0;}
+h2{color:var(--green);margin-top:0;}
 h3{margin:16px 0 8px;}
 label{display:block;margin-top:8px;font-weight:bold;}
 input,textarea,select{
@@ -40,9 +48,19 @@ button{
   color:#fff;
   margin-top:10px;
 }
-.previewBtn{background:#007aff;}
-.lineBtn{background:#06c755;}
-.copyBtn{background:#ff9500;}
+.previewBtn{background:var(--blue);}
+.lineBtn{background:var(--line);}
+.copyBtn{background:var(--orange);}
+.notice-card{
+  background:#fff9e8;
+  border-left:5px solid var(--orange);
+}
+.notice-text{
+  margin:0;
+  line-height:1.6;
+  font-size:15px;
+  color:#333;
+}
 .check-label{
   display:flex;
   align-items:center;
@@ -74,7 +92,7 @@ button{
   text-align:center;
   font-size:22px;
   font-weight:bold;
-  color:#2a7d44;
+  color:var(--green);
 }
 #preview{
   white-space:pre-wrap;
@@ -89,11 +107,22 @@ button{
   font-size:14px;
   margin:6px 0 0;
 }
+.day-status{
+  margin-top:8px;
+  padding:10px;
+  background:#eef8ef;
+  border-radius:8px;
+  color:var(--green);
+  font-weight:bold;
+}
 @media (prefers-color-scheme: dark){
   body{background:#111;color:#fff;}
   .card,#preview{background:#222;}
   input,textarea,select{background:#333;color:#fff;border-color:#555;}
+  .notice-card{background:#2a2312;border-left-color:#ffb84d;}
+  .notice-text{color:#fff;}
   .small-note{color:#ccc;}
+  .day-status{background:#18351f;color:#9be7aa;}
 }
 </style>
 </head>
@@ -101,16 +130,22 @@ button{
 
 <h1>📩 デトックスチャレンジ</h1>
 
+<div class="card notice-card">
+  <p class="notice-text">チェックを外した項目は、「LINEで送る」および「テキストでコピー」の対象から除外されます。</p>
+</div>
+
 <div class="card">
-  <label class="check-label"><input type="checkbox" id="incDay" checked>DAY</label>
-  <input id="day" readonly>
+  <label class="check-label"><input type="checkbox" id="incDay" checked>DAY・日付</label>
+  <label>日付を選択</label>
+  <input type="date" id="reportDate" onchange="applyMissionByDate()">
+  <div class="day-status" id="dayStatus">日付を選択してください</div>
+  <p class="small-note" id="dateLimitNote">Day1は2026/8/17です。Day28まで日付に応じてMISSION①②③を自動入力します。</p>
 </div>
 
 <div class="card">
   <h2>🌿 今日のMISSION</h2>
-
   <label class="check-label"><input type="checkbox" id="incM1" checked>MISSION①</label>
-  <input id="m1">
+  <input id="m1" type="text">
   <div class="radio-row">
     <label>○ <input type="radio" name="r1" value="○" checked></label>
     <label>△ <input type="radio" name="r1" value="△"></label>
@@ -118,7 +153,7 @@ button{
   </div>
 
   <label class="check-label"><input type="checkbox" id="incM2" checked>MISSION②</label>
-  <input id="m2">
+  <input id="m2" type="text">
   <div class="radio-row">
     <label>○ <input type="radio" name="r2" value="○" checked></label>
     <label>△ <input type="radio" name="r2" value="△"></label>
@@ -126,12 +161,13 @@ button{
   </div>
 
   <label class="check-label"><input type="checkbox" id="incM3" checked>MISSION③</label>
-  <input id="m3">
+  <input id="m3" type="text">
   <div class="radio-row">
     <label>○ <input type="radio" name="r3" value="○" checked></label>
     <label>△ <input type="radio" name="r3" value="△"></label>
     <label>× <input type="radio" name="r3" value="×"></label>
   </div>
+  <p class="small-note">日付選択で自動入力されます。各MISSIONはテキストで修正できます。</p>
 </div>
 
 <div class="card">
@@ -168,7 +204,6 @@ button{
   <h2>🏃 活動・運動</h2>
   <label class="check-label"><input type="checkbox" id="incExercise" checked>活動・運動</label>
   <textarea id="exercise"></textarea>
-
   <h3>食後に動けた</h3>
   <label class="check-label"><input type="checkbox" id="incMove" checked>食後に動けた</label>
   <label>朝</label>
@@ -234,147 +269,122 @@ button{
 <div id="preview"></div>
 
 <script>
-document.getElementById('day').value = new Date().toLocaleDateString('ja-JP');
-
-function checked(id){
-  const el = document.getElementById(id);
-  return el && el.checked;
+const START_DATE = '2026-08-17';
+const END_DATE = '2026-09-13';
+const missionData = {
+  1:['今日1日、除去食ルールを守る','水分を一気飲みせず、こまめに摂る','夜までに、今の自分の状態を1つ観察する　睡眠・便通・疲労感・むくみ・食後の眠気など、どれでもOK'],
+  2:['一口ごとに、いつもより丁寧に噛む','食事の最初に、野菜や食物繊維から食べる','食後の「眠い・重い・まだ食べたい」を観察する'],
+  3:['昼食または夕食後、2〜5分身体を動かす','今日は、できるだけだらだら食べをしない','夕方の空腹感を観察する　「本当にお腹が空いた？」「なんとなく食べたい？」を見てみる'],
+  4:['起床後、レモン＋りんご酢水を1杯','朝の光を5〜10分浴びる','朝の目覚めを「すっきり／普通／重い」で観察する'],
+  5:['今日の水分量を意識する　目安：体重×40mL／日（食事中の水分も含む）','一気飲みせず、数回に分けて飲む','尿の色・回数を一度観察する'],
+  6:['今日1日で、3色以上の野菜を食べる','1食は「野菜＋たんぱく質＋良質な脂質」を意識する','食後のお腹の張りや満足感を観察する'],
+  7:['レモン＋りんご酢水からスタート','食後2〜5分、身体を動かす','この1週間で「少し変わったかも」と思うことを1つ見つける'],
+  8:['今日から肉・魚を除去する','豆類・野菜・きのこ・海藻など、植物性食品をしっかり摂る','「肉・魚がない食事で、満足感はどうか」を観察する'],
+  9:['今日の便を観察する　形・硬さ・色・出しやすさ・残便感','水分をこまめに摂る','野菜・きのこ・海藻などから食物繊維を摂る'],
+  10:['食事と食事の間に、食べない時間をつくる','間食したくなったら、まず「空腹？習慣？」を確認する','夜遅い食事を避ける'],
+  11:['今日、食物繊維の種類を3種類以上摂る','よく噛んで食べる','食後のお腹の張り・ガス・便通の変化を見る'],
+  12:['1日3回、ゆっくり3〜5呼吸する','吐く息を少し長めにする','食事中に急いでいる自分に気づいたら、一度箸を置く'],
+  13:['朝のレモン＋りんご酢水','食後2〜5分動く','今日の便・尿・汗のどれか1つを観察する'],
+  14:['今日も肉・魚なしで過ごす','「空腹」と「食欲」の違いを一度意識する','第1週と比べて、便通・睡眠・疲労感の変化を1つ振り返る'],
+  15:['食後2〜5分、身体を動かす','今日は少しだけ歩く時間を増やす','動いた後の身体の軽さ・疲れ方を観察する'],
+  16:['スクワットまたは椅子からの立ち座りを10回','カーフレイズを10〜20回','運動後の身体の温まり方を観察する'],
+  17:['ご飯だけで食べず、野菜・たんぱく質・脂質と組み合わせる','昼食後に2〜5分動く','食後1〜2時間の眠気を観察する'],
+  18:['起床後、朝の光を浴びる','レモン＋りんご酢水を飲む','「起きた瞬間の元気度」を10点満点でつけてみる'],
+  19:['間食したくなったら、まず10分待ってみる','水分を摂って、それでも空腹か確認する','今日一番お腹が空いた時間帯を覚えておく'],
+  20:['今夜は、寝る1時間前からスマホを見る時間を減らす','入浴するなら就寝1〜2時間前を目安に','明日の朝、睡眠の質を確認できるよう意識して眠る'],
+  21:['今日までの除去食を最後まで丁寧に続ける','カルシウムDグルカレートは今日で終了','21日間で感じた変化を3つ思い出す　小さなことでOK'],
+  22:['今日からマルチビタミン・ミネラル 朝2粒・夜2粒','再導入する食品は1種類だけ','食べる前の身体の状態を確認しておく'],
+  23:['昨日再導入した食品以外は、基本の食事を続ける','鼻・皮膚・お腹・便・眠気・むくみを観察する','「食べた直後」だけでなく「翌日の身体」も見る'],
+  24:['今日も再導入は1種類ずつ','食べる前と食べた後の違いを1つ確認する','「好きだから食べたい」と「身体に合う」を分けて考えてみる'],
+  25:['再導入食品は、一度にたくさん食べすぎない','少量で身体の反応を観察する','食後の満足感・眠気・お腹の状態を見る'],
+  26:['今日の食事で「身体が楽だった組み合わせ」を1つ見つける','食後2〜5分動く','食事量は多すぎなかったか、少なすぎなかったか確認する'],
+  27:['28日間で身についた習慣を3つ思い出す','その中から「これなら続けられそう」を1つ選ぶ','逆に「これは無理していたかも」を1つ考える'],
+  28:['Day1の自分と今日の自分を比べる','睡眠・便通・疲労感・食後・むくみ・気分などから、変化を3つ見つける','これからも続けたいことを1つ決める']
+};
+function parseLocalDate(value){ const p=value.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function formatYmd(date){ const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,'0'); const d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function toYmdSlash(value){ if(!value)return ''; const p=value.split('-').map(Number); return `${p[0]}/${p[1]}/${p[2]}`; }
+function minDate(a,b){ return a <= b ? a : b; }
+function setDateLimits(){
+  const input=document.getElementById('reportDate');
+  const start=parseLocalDate(START_DATE);
+  const end=parseLocalDate(END_DATE);
+  const today=new Date();
+  const todayLocal=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const tomorrowLocal=new Date(todayLocal);
+  tomorrowLocal.setDate(todayLocal.getDate()+1);
+  let maxAllowed=minDate(end, tomorrowLocal);
+  if(maxAllowed < start){ maxAllowed = start; }
+  const maxStr=formatYmd(maxAllowed);
+  input.min=START_DATE;
+  input.max=maxStr;
+  document.getElementById('dateLimitNote').textContent = `Day1は2026/8/17です。選択可能な日付は2026/8/17〜${toYmdSlash(maxStr)}です。日付に応じてMISSION①②③を自動入力します。`;
+  let defaultDate;
+  if(todayLocal < start){ defaultDate = START_DATE; }
+  else if(todayLocal > maxAllowed){ defaultDate = maxStr; }
+  else { defaultDate = formatYmd(todayLocal); }
+  input.value=defaultDate;
 }
-
-function getRadio(name){
-  return document.querySelector('input[name="' + name + '"]:checked').value;
+function getDayNumber(){
+  const v=document.getElementById('reportDate').value;
+  if(!v)return null;
+  const diff=Math.round((parseLocalDate(v)-parseLocalDate(START_DATE))/86400000);
+  const dayNo=diff+1;
+  return (dayNo>=1 && dayNo<=28)?dayNo:null;
 }
-
-function addTextBlock(lines, value){
-  const text = String(value || '').trim();
-  if(text){
-    text.split('\n').forEach(function(line){ lines.push(line); });
-  }
+function clampSelectedDate(){
+  const input=document.getElementById('reportDate');
+  if(input.value < input.min){ input.value = input.min; }
+  if(input.value > input.max){ input.value = input.max; }
 }
-
+function applyMissionByDate(){
+  clampSelectedDate();
+  const status=document.getElementById('dayStatus');
+  const dateText=toYmdSlash(document.getElementById('reportDate').value);
+  const dayNo=getDayNumber();
+  if(!dayNo){ status.textContent='対象期間外です。選択可能な日付から選んでください。'; return; }
+  status.textContent=`Day${dayNo}（${dateText}）`;
+  const missions=missionData[dayNo];
+  document.getElementById('m1').value=missions[0];
+  document.getElementById('m2').value=missions[1];
+  document.getElementById('m3').value=missions[2];
+}
+function checked(id){ const el=document.getElementById(id); return el && el.checked; }
+function getRadio(name){ return document.querySelector('input[name="'+name+'"]:checked').value; }
+function addTextBlock(lines,value){ const text=String(value||'').trim(); if(text){ text.split('\n').forEach(line=>lines.push(line)); } }
 function buildText(){
-  const lines = [];
-
-  if(checked('incDay')){
-    lines.push(`📩 DAY ${day.value} デトックスチャレンジレポート`);
-    lines.push('');
-  }
-
-  const mission = [];
+  const lines=[];
+  const dayNo=getDayNumber();
+  const dateText=toYmdSlash(document.getElementById('reportDate').value);
+  if(checked('incDay')){ lines.push(`📩 DAY ${dayNo || ''}（${dateText}）デトックスチャレンジレポート`); lines.push(''); }
+  const mission=[];
   if(checked('incM1')){ mission.push(`① ${m1.value}`); mission.push(getRadio('r1')); }
   if(checked('incM2')){ mission.push(`② ${m2.value}`); mission.push(getRadio('r2')); }
   if(checked('incM3')){ mission.push(`③ ${m3.value}`); mission.push(getRadio('r3')); }
   if(mission.length){ lines.push('🌿 今日のMISSION'); lines.push(...mission); lines.push(''); }
-
-  const food = [];
-  if(checked('incBreakfast')){ food.push('🍋 朝：'); addTextBlock(food, breakfast.value); }
-  if(checked('incLunch')){ food.push('🍙 昼：'); addTextBlock(food, lunch.value); }
-  if(checked('incSnack')){ food.push('🍪 おやつ：'); addTextBlock(food, snack.value); }
-  if(checked('incDinner')){ food.push('🌙 夜：'); addTextBlock(food, dinner.value); }
+  const food=[];
+  if(checked('incBreakfast')){ food.push('🍋 朝：'); addTextBlock(food,breakfast.value); }
+  if(checked('incLunch')){ food.push('🍙 昼：'); addTextBlock(food,lunch.value); }
+  if(checked('incSnack')){ food.push('🍪 おやつ：'); addTextBlock(food,snack.value); }
+  if(checked('incDinner')){ food.push('🌙 夜：'); addTextBlock(food,dinner.value); }
   if(food.length){ lines.push('🍽 食べたもの'); lines.push(...food); lines.push(''); }
-
-  if(checked('incWater')){
-    lines.push('💧 水分');
-    lines.push(`水 ${water.value}L`);
-    lines.push(`＋ その他（${otherDrink.value}）`);
-    lines.push('');
-  }
-
-  if(checked('incSupplement')){
-    lines.push('💊 サプリメント');
-    lines.push(supplement.value);
-    lines.push('');
-  }
-
-  if(checked('incExercise')){
-    lines.push('🏃 活動・運動');
-    addTextBlock(lines, exercise.value);
-    lines.push('');
-  }
-
-  if(checked('incMove')){
-    lines.push('食後に動けた');
-    lines.push(`朝 ${move1.value}`);
-    lines.push(`昼 ${move2.value}`);
-    lines.push(`夜 ${move3.value}`);
-    lines.push('');
-  }
-
-  if(checked('incSleep')){
-    lines.push('😴 睡眠');
-    lines.push(`就寝：${sleep.value}`);
-    lines.push(`起床：${wake.value}`);
-    lines.push(`中途覚醒：${awake.value}`);
-    lines.push(`朝の目覚め：${morning.value}`);
-    lines.push('');
-  }
-
-  if(checked('incCraving')){
-    lines.push('🍰 今日の欲求');
-    lines.push(`甘いもの：${sweet.value}`);
-    lines.push(`カフェイン：${caffeine.value}`);
-    lines.push('');
-  }
-
-  if(checked('incFatigue')){
-    lines.push('⚡ 午後の疲れ・眠気');
-    lines.push(fatigue.value);
-    lines.push('');
-  }
-
-  if(checked('incBowel')){
-    lines.push('💩 お通じ');
-    lines.push(bowel.value);
-    lines.push('');
-  }
-
-  if(checked('incWeight')){
-    lines.push('⚖️ 体重');
-    lines.push(`${weight.value}kg`);
-    lines.push('');
-  }
-
-  if(checked('incNote')){
-    lines.push('📝 今日の気づき・身体の変化');
-    addTextBlock(lines, note.value);
-  }
-
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  if(checked('incWater')){ lines.push('💧 水分'); lines.push(`水 ${water.value}L`); lines.push(`＋ その他（${otherDrink.value}）`); lines.push(''); }
+  if(checked('incSupplement')){ lines.push('💊 サプリメント'); lines.push(supplement.value); lines.push(''); }
+  if(checked('incExercise')){ lines.push('🏃 活動・運動'); addTextBlock(lines,exercise.value); lines.push(''); }
+  if(checked('incMove')){ lines.push('食後に動けた'); lines.push(`朝 ${move1.value}`); lines.push(`昼 ${move2.value}`); lines.push(`夜 ${move3.value}`); lines.push(''); }
+  if(checked('incSleep')){ lines.push('😴 睡眠'); lines.push(`就寝：${sleep.value}`); lines.push(`起床：${wake.value}`); lines.push(`中途覚醒：${awake.value}`); lines.push(`朝の目覚め：${morning.value}`); lines.push(''); }
+  if(checked('incCraving')){ lines.push('🍰 今日の欲求'); lines.push(`甘いもの：${sweet.value}`); lines.push(`カフェイン：${caffeine.value}`); lines.push(''); }
+  if(checked('incFatigue')){ lines.push('⚡ 午後の疲れ・眠気'); lines.push(fatigue.value); lines.push(''); }
+  if(checked('incBowel')){ lines.push('💩 お通じ'); lines.push(bowel.value); lines.push(''); }
+  if(checked('incWeight')){ lines.push('⚖️ 体重'); lines.push(`${weight.value}kg`); lines.push(''); }
+  if(checked('incNote')){ lines.push('📝 今日の気づき・身体の変化'); addTextBlock(lines,note.value); }
+  return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
 }
-
-function previewText(){
-  const text = buildText();
-  document.getElementById('preview').textContent = text || '送信対象の項目がありません。入力フォーム側のチェックを確認してください。';
-}
-
-function sendLine(){
-  const text = buildText();
-  if(!text){
-    alert('送信対象の項目がありません。入力フォーム側のチェックを確認してください。');
-    return;
-  }
-  location.href = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
-}
-
-async function copyText(){
-  const text = buildText();
-  if(!text){
-    alert('コピー対象の項目がありません。入力フォーム側のチェックを確認してください。');
-    return;
-  }
-  try{
-    await navigator.clipboard.writeText(text);
-    alert('コピーしました');
-  }catch(e){
-    const temp = document.createElement('textarea');
-    temp.value = text;
-    document.body.appendChild(temp);
-    temp.select();
-    document.execCommand('copy');
-    document.body.removeChild(temp);
-    alert('コピーしました');
-  }
-}
+function previewText(){ const text=buildText(); document.getElementById('preview').textContent=text||'送信対象の項目がありません。入力フォーム側のチェックを確認してください。'; }
+function sendLine(){ const text=buildText(); if(!text){ alert('送信対象の項目がありません。入力フォーム側のチェックを確認してください。'); return; } location.href='https://line.me/R/msg/text/?'+encodeURIComponent(text); }
+async function copyText(){ const text=buildText(); if(!text){ alert('コピー対象の項目がありません。入力フォーム側のチェックを確認してください。'); return; } try{ await navigator.clipboard.writeText(text); alert('コピーしました'); }catch(e){ const temp=document.createElement('textarea'); temp.value=text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); document.body.removeChild(temp); alert('コピーしました'); } }
+setDateLimits();
+applyMissionByDate();
 </script>
 </body>
 </html>
