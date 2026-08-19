@@ -1,24 +1,380 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>デトックスチャレンジレポート</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f7f5;margin:0;padding:12px}.card{background:#fff;border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}h1{text-align:center}h2{color:#2a7d44}input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;font-size:16px}textarea{min-height:70px}button{width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;color:#fff;margin-top:10px}.previewBtn{background:#007aff}.lineBtn{background:#06c755}.copyBtn{background:#ff9500}.radio-row{display:flex;align-items:center;margin:8px 0 12px}.radio-row label{display:flex;align-items:center;margin-right:2em}.radio-row input[type=radio]{margin-left:4px}.rangeValue{text-align:center;font-size:22px;font-weight:bold;color:#2a7d44}#preview{white-space:pre-wrap;background:#fff;padding:15px;border-radius:12px;margin-top:15px}</style></head><body><h1>📩 デトックスチャレンジ</h1><div class="card"><label>DAY</label><input id="day" readonly></div><div class="card"><h2>🌿 今日のMISSION</h2><label>MISSION①</label><input id="m1"><div class="radio-row"><label>○ <input type="radio" name="r1" value="○" checked></label><label>△ <input type="radio" name="r1" value="△"></label><label>× <input type="radio" name="r1" value="×"></label></div><label>MISSION②</label><input id="m2"><div class="radio-row"><label>○ <input type="radio" name="r2" value="○" checked></label><label>△ <input type="radio" name="r2" value="△"></label><label>× <input type="radio" name="r2" value="×"></label></div><label>MISSION③</label><input id="m3"><div class="radio-row"><label>○ <input type="radio" name="r3" value="○" checked></label><label>△ <input type="radio" name="r3" value="△"></label><label>× <input type="radio" name="r3" value="×"></label></div></div><div class="card"><h2>🍽 食べたもの</h2><label>🍋 朝</label><textarea id="breakfast"></textarea><label>🍙 昼</label><textarea id="lunch"></textarea><label>🍪 おやつ</label><textarea id="snack"></textarea><label>🌙 夜</label><textarea id="dinner"></textarea></div><div class="card"><h2>💧 水分</h2><input type="number" step="0.1" id="water" placeholder="水(L)"><input id="otherDrink" placeholder="その他"></div><div class="card"><h2>💊 サプリメント</h2><select id="supplement"><option>規定通り</option><option>飲み忘れあり</option></select></div><div class="card"><h2>🏃 活動・運動</h2><textarea id="exercise"></textarea><h3>食後に動けた</h3><label>朝</label><select id="move1"><option>○</option><option>△</option><option>×</option></select><label>昼</label><select id="move2"><option>○</option><option>△</option><option>×</option></select><label>夜</label><select id="move3"><option>○</option><option>△</option><option>×</option></select></div><div class="card"><h2>😴 睡眠</h2><input type="time" id="sleep"><input type="time" id="wake"><label>中途覚醒</label><select id="awake"><option>なし</option><option>あり</option></select><label>朝の目覚め</label><select id="morning"><option>良い</option><option>普通</option><option>いまいち</option></select></div><div class="card"><h2>🍰 甘いもの欲求</h2><div class="rangeValue" id="sweetValue">0</div><input type="range" min="0" max="4" value="0" id="sweet" oninput="sweetValue.innerText=this.value"></div><div class="card"><h2>☕ カフェイン欲求</h2><div class="rangeValue" id="caffeineValue">0</div><input type="range" min="0" max="4" value="0" id="caffeine" oninput="caffeineValue.innerText=this.value"></div><div class="card"><h2>⚡ 午後の疲れ・眠気</h2><div class="rangeValue" id="fatigueValue">0</div><input type="range" min="0" max="4" value="0" id="fatigue" oninput="fatigueValue.innerText=this.value"></div><div class="card"><h2>💩 お通じ</h2><select id="bowel"><option>あり</option><option>なし</option></select></div><div class="card"><h2>⚖️ 体重</h2><input type="number" step="0.1" id="weight"></div><div class="card"><h2>📝 今日の気づき・身体の変化</h2><textarea id="note"></textarea></div><button class="previewBtn" onclick="previewText()">内容確認</button><button class="lineBtn" onclick="sendLine()">LINEで送る</button><button class="copyBtn" onclick="copyText()">テキストでコピー</button><div id="preview"></div><script>day.value=new Date().toLocaleDateString('ja-JP');function getRadio(n){return document.querySelector('input[name="'+n+'"]:checked').value}function buildText(){return `📩 DAY ${day.value} デトックスチャレンジレポート
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>デトックスチャレンジレポート</title>
+<style>
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  background:#f5f7f5;
+  margin:0;
+  padding:12px;
+}
+.card{
+  background:#fff;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+h1{text-align:center;font-size:1.45rem;}
+h2{color:#2a7d44;margin-top:0;}
+h3{margin:16px 0 8px;}
+label{display:block;margin-top:8px;font-weight:bold;}
+input,textarea,select{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  box-sizing:border-box;
+  font-size:16px;
+}
+textarea{min-height:70px;}
+button{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:16px;
+  font-size:18px;
+  color:#fff;
+  margin-top:10px;
+}
+.previewBtn{background:#007aff;}
+.lineBtn{background:#06c755;}
+.copyBtn{background:#ff9500;}
+.check-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:bold;
+  margin-top:12px;
+}
+.check-label input[type="checkbox"]{
+  width:auto;
+  transform:scale(1.25);
+}
+.radio-row{
+  display:flex;
+  align-items:center;
+  margin-top:8px;
+  margin-bottom:12px;
+}
+.radio-row label{
+  display:flex;
+  align-items:center;
+  margin-right:2em;
+  font-weight:normal;
+}
+.radio-row input[type="radio"]{
+  width:auto;
+  margin-left:4px;
+}
+.rangeValue{
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  color:#2a7d44;
+}
+#preview{
+  white-space:pre-wrap;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+  margin-top:15px;
+  line-height:1.5;
+}
+.small-note{
+  color:#555;
+  font-size:14px;
+  margin:6px 0 0;
+}
+@media (prefers-color-scheme: dark){
+  body{background:#111;color:#fff;}
+  .card,#preview{background:#222;}
+  input,textarea,select{background:#333;color:#fff;border-color:#555;}
+  .small-note{color:#ccc;}
+}
+</style>
+</head>
+<body>
 
-🌿 今日のMISSION
-① ${m1.value} ${getRadio('r1')}
-② ${m2.value} ${getRadio('r2')}
-③ ${m3.value} ${getRadio('r3')}
+<h1>📩 デトックスチャレンジ</h1>
 
-🍽 食べたもの
-朝:${breakfast.value}
-昼:${lunch.value}
-おやつ:${snack.value}
-夜:${dinner.value}
+<div class="card">
+  <label class="check-label"><input type="checkbox" id="incDay" checked>DAY</label>
+  <input id="day" readonly>
+</div>
 
-💧 水分 水${water.value}L その他(${otherDrink.value})
-💊 サプリメント ${supplement.value}
-🏃 活動・運動 ${exercise.value}
-食後に動けた 朝${move1.value} 昼${move2.value} 夜${move3.value}
-😴 睡眠 就寝:${sleep.value} 起床:${wake.value} 中途覚醒:${awake.value} 朝の目覚め:${morning.value}
-🍰 甘いもの:${sweet.value} カフェイン:${caffeine.value}
-⚡ 午後の疲れ・眠気:${fatigue.value}
-💩 お通じ:${bowel.value}
-⚖️ 体重:${weight.value}kg
-📝 今日の気づき・身体の変化
-${note.value}`;}function previewText(){document.getElementById('preview').innerText=buildText()}function sendLine(){location.href='https://line.me/R/msg/text/?'+encodeURIComponent(buildText())}async function copyText(){await navigator.clipboard.writeText(buildText());alert('コピーしました');}</script></body></html>
+<div class="card">
+  <h2>🌿 今日のMISSION</h2>
+
+  <label class="check-label"><input type="checkbox" id="incM1" checked>MISSION①</label>
+  <input id="m1">
+  <div class="radio-row">
+    <label>○ <input type="radio" name="r1" value="○" checked></label>
+    <label>△ <input type="radio" name="r1" value="△"></label>
+    <label>× <input type="radio" name="r1" value="×"></label>
+  </div>
+
+  <label class="check-label"><input type="checkbox" id="incM2" checked>MISSION②</label>
+  <input id="m2">
+  <div class="radio-row">
+    <label>○ <input type="radio" name="r2" value="○" checked></label>
+    <label>△ <input type="radio" name="r2" value="△"></label>
+    <label>× <input type="radio" name="r2" value="×"></label>
+  </div>
+
+  <label class="check-label"><input type="checkbox" id="incM3" checked>MISSION③</label>
+  <input id="m3">
+  <div class="radio-row">
+    <label>○ <input type="radio" name="r3" value="○" checked></label>
+    <label>△ <input type="radio" name="r3" value="△"></label>
+    <label>× <input type="radio" name="r3" value="×"></label>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🍽 食べたもの</h2>
+  <label class="check-label"><input type="checkbox" id="incBreakfast" checked>🍋 朝</label>
+  <textarea id="breakfast"></textarea>
+  <label class="check-label"><input type="checkbox" id="incLunch" checked>🍙 昼</label>
+  <textarea id="lunch"></textarea>
+  <label class="check-label"><input type="checkbox" id="incSnack" checked>🍪 おやつ</label>
+  <textarea id="snack"></textarea>
+  <label class="check-label"><input type="checkbox" id="incDinner" checked>🌙 夜</label>
+  <textarea id="dinner"></textarea>
+</div>
+
+<div class="card">
+  <h2>💧 水分</h2>
+  <label class="check-label"><input type="checkbox" id="incWater" checked>水分</label>
+  <label>水(L)</label>
+  <input type="number" step="0.1" id="water">
+  <label>その他</label>
+  <input id="otherDrink">
+</div>
+
+<div class="card">
+  <h2>💊 サプリメント</h2>
+  <label class="check-label"><input type="checkbox" id="incSupplement" checked>サプリメント</label>
+  <select id="supplement">
+    <option>規定通り</option>
+    <option>飲み忘れあり</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>🏃 活動・運動</h2>
+  <label class="check-label"><input type="checkbox" id="incExercise" checked>活動・運動</label>
+  <textarea id="exercise"></textarea>
+
+  <h3>食後に動けた</h3>
+  <label class="check-label"><input type="checkbox" id="incMove" checked>食後に動けた</label>
+  <label>朝</label>
+  <select id="move1"><option>○</option><option>△</option><option>×</option></select>
+  <label>昼</label>
+  <select id="move2"><option>○</option><option>△</option><option>×</option></select>
+  <label>夜</label>
+  <select id="move3"><option>○</option><option>△</option><option>×</option></select>
+</div>
+
+<div class="card">
+  <h2>😴 睡眠</h2>
+  <label class="check-label"><input type="checkbox" id="incSleep" checked>睡眠</label>
+  <label>就寝</label>
+  <input type="time" id="sleep">
+  <label>起床</label>
+  <input type="time" id="wake">
+  <label>中途覚醒</label>
+  <select id="awake"><option>なし</option><option>あり</option></select>
+  <label>朝の目覚め</label>
+  <select id="morning"><option>良い</option><option>普通</option><option>いまいち</option></select>
+</div>
+
+<div class="card">
+  <h2>🍰 今日の欲求</h2>
+  <label class="check-label"><input type="checkbox" id="incCraving" checked>甘いもの・カフェイン</label>
+  <h3>甘いもの欲求</h3>
+  <div class="rangeValue" id="sweetValue">0</div>
+  <input type="range" min="0" max="4" value="0" id="sweet" oninput="sweetValue.innerText=this.value">
+  <h3>カフェイン欲求</h3>
+  <div class="rangeValue" id="caffeineValue">0</div>
+  <input type="range" min="0" max="4" value="0" id="caffeine" oninput="caffeineValue.innerText=this.value">
+</div>
+
+<div class="card">
+  <h2>⚡ 午後の疲れ・眠気</h2>
+  <label class="check-label"><input type="checkbox" id="incFatigue" checked>午後の疲れ・眠気</label>
+  <div class="rangeValue" id="fatigueValue">0</div>
+  <input type="range" min="0" max="4" value="0" id="fatigue" oninput="fatigueValue.innerText=this.value">
+</div>
+
+<div class="card">
+  <h2>💩 お通じ</h2>
+  <label class="check-label"><input type="checkbox" id="incBowel" checked>お通じ</label>
+  <select id="bowel"><option>あり</option><option>なし</option></select>
+</div>
+
+<div class="card">
+  <h2>⚖️ 体重</h2>
+  <label class="check-label"><input type="checkbox" id="incWeight" checked>体重</label>
+  <input type="number" step="0.1" id="weight">
+</div>
+
+<div class="card">
+  <h2>📝 今日の気づき・身体の変化</h2>
+  <label class="check-label"><input type="checkbox" id="incNote" checked>今日の気づき・身体の変化</label>
+  <textarea id="note"></textarea>
+</div>
+
+<button class="previewBtn" onclick="previewText()">内容確認</button>
+<button class="lineBtn" onclick="sendLine()">LINEで送る</button>
+<button class="copyBtn" onclick="copyText()">テキストでコピー</button>
+<div id="preview"></div>
+
+<script>
+document.getElementById('day').value = new Date().toLocaleDateString('ja-JP');
+
+function checked(id){
+  const el = document.getElementById(id);
+  return el && el.checked;
+}
+
+function getRadio(name){
+  return document.querySelector('input[name="' + name + '"]:checked').value;
+}
+
+function addTextBlock(lines, value){
+  const text = String(value || '').trim();
+  if(text){
+    text.split('\n').forEach(function(line){ lines.push(line); });
+  }
+}
+
+function buildText(){
+  const lines = [];
+
+  if(checked('incDay')){
+    lines.push(`📩 DAY ${day.value} デトックスチャレンジレポート`);
+    lines.push('');
+  }
+
+  const mission = [];
+  if(checked('incM1')){ mission.push(`① ${m1.value}`); mission.push(getRadio('r1')); }
+  if(checked('incM2')){ mission.push(`② ${m2.value}`); mission.push(getRadio('r2')); }
+  if(checked('incM3')){ mission.push(`③ ${m3.value}`); mission.push(getRadio('r3')); }
+  if(mission.length){ lines.push('🌿 今日のMISSION'); lines.push(...mission); lines.push(''); }
+
+  const food = [];
+  if(checked('incBreakfast')){ food.push('🍋 朝：'); addTextBlock(food, breakfast.value); }
+  if(checked('incLunch')){ food.push('🍙 昼：'); addTextBlock(food, lunch.value); }
+  if(checked('incSnack')){ food.push('🍪 おやつ：'); addTextBlock(food, snack.value); }
+  if(checked('incDinner')){ food.push('🌙 夜：'); addTextBlock(food, dinner.value); }
+  if(food.length){ lines.push('🍽 食べたもの'); lines.push(...food); lines.push(''); }
+
+  if(checked('incWater')){
+    lines.push('💧 水分');
+    lines.push(`水 ${water.value}L`);
+    lines.push(`＋ その他（${otherDrink.value}）`);
+    lines.push('');
+  }
+
+  if(checked('incSupplement')){
+    lines.push('💊 サプリメント');
+    lines.push(supplement.value);
+    lines.push('');
+  }
+
+  if(checked('incExercise')){
+    lines.push('🏃 活動・運動');
+    addTextBlock(lines, exercise.value);
+    lines.push('');
+  }
+
+  if(checked('incMove')){
+    lines.push('食後に動けた');
+    lines.push(`朝 ${move1.value}`);
+    lines.push(`昼 ${move2.value}`);
+    lines.push(`夜 ${move3.value}`);
+    lines.push('');
+  }
+
+  if(checked('incSleep')){
+    lines.push('😴 睡眠');
+    lines.push(`就寝：${sleep.value}`);
+    lines.push(`起床：${wake.value}`);
+    lines.push(`中途覚醒：${awake.value}`);
+    lines.push(`朝の目覚め：${morning.value}`);
+    lines.push('');
+  }
+
+  if(checked('incCraving')){
+    lines.push('🍰 今日の欲求');
+    lines.push(`甘いもの：${sweet.value}`);
+    lines.push(`カフェイン：${caffeine.value}`);
+    lines.push('');
+  }
+
+  if(checked('incFatigue')){
+    lines.push('⚡ 午後の疲れ・眠気');
+    lines.push(fatigue.value);
+    lines.push('');
+  }
+
+  if(checked('incBowel')){
+    lines.push('💩 お通じ');
+    lines.push(bowel.value);
+    lines.push('');
+  }
+
+  if(checked('incWeight')){
+    lines.push('⚖️ 体重');
+    lines.push(`${weight.value}kg`);
+    lines.push('');
+  }
+
+  if(checked('incNote')){
+    lines.push('📝 今日の気づき・身体の変化');
+    addTextBlock(lines, note.value);
+  }
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function previewText(){
+  const text = buildText();
+  document.getElementById('preview').textContent = text || '送信対象の項目がありません。入力フォーム側のチェックを確認してください。';
+}
+
+function sendLine(){
+  const text = buildText();
+  if(!text){
+    alert('送信対象の項目がありません。入力フォーム側のチェックを確認してください。');
+    return;
+  }
+  location.href = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
+}
+
+async function copyText(){
+  const text = buildText();
+  if(!text){
+    alert('コピー対象の項目がありません。入力フォーム側のチェックを確認してください。');
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    alert('コピーしました');
+  }catch(e){
+    const temp = document.createElement('textarea');
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    alert('コピーしました');
+  }
+}
+</script>
+</body>
+</html>
