@@ -107,6 +107,7 @@ button{
   font-size:14px;
   margin:6px 0 0;
 }
+.save-status{margin-top:8px;color:#2a7d44;font-size:13px;font-weight:bold;}
 .day-status{
   margin-top:8px;
   padding:10px;
@@ -132,6 +133,8 @@ button{
 
 <div class="card notice-card">
   <p class="notice-text">チェックを外した項目は、「LINEで送る」および「テキストでコピー」の対象から除外されます。</p>
+  <p class="notice-text">入力内容は、この端末・このブラウザ内に入力の都度自動保存されます。「LINEで送る」を押すと、選択中の日付の保存内容をリセットします。</p>
+  <div class="save-status" id="saveStatus">自動保存を準備しています</div>
 </div>
 
 
@@ -380,10 +383,7 @@ function applyMissionByDate(){
   if(!dayNo){ status.textContent='対象期間外です。選択可能な日付から選んでください。'; return; }
   status.textContent=`Day${dayNo}（${dateText}）`;
   updateWeekInfo();
-  const missions=missionData[dayNo];
-  document.getElementById('m1').value=missions[0];
-  document.getElementById('m2').value=missions[1];
-  document.getElementById('m3').value=missions[2];
+  loadDraftForSelectedDate();
 }
 function checked(id){ const el=document.getElementById(id); return el && el.checked; }
 function getRadio(name){ return document.querySelector('input[name="'+name+'"]:checked').value; }
@@ -417,9 +417,48 @@ function buildText(){
   return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function previewText(){ const text=buildText(); document.getElementById('preview').textContent=text||'送信対象の項目がありません。入力フォーム側のチェックを確認してください。'; }
-function sendLine(){ const text=buildText(); if(!text){ alert('送信対象の項目がありません。入力フォーム側のチェックを確認してください。'); return; } location.href='https://line.me/R/msg/text/?'+encodeURIComponent(text); }
+function sendLine(){ const text=buildText(); if(!text){ alert('送信対象の項目がありません。入力フォーム側のチェックを確認してください。'); return; } resetCurrentDateDraft(); location.href='https://line.me/R/msg/text/?'+encodeURIComponent(text); }
 async function copyText(){ const text=buildText(); if(!text){ alert('コピー対象の項目がありません。入力フォーム側のチェックを確認してください。'); return; } try{ await navigator.clipboard.writeText(text); alert('コピーしました'); }catch(e){ const temp=document.createElement('textarea'); temp.value=text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); document.body.removeChild(temp); alert('コピーしました'); } }
+const DRAFT_PREFIX='detox-report-draft-v1:';
+const LAST_DATE_KEY='detox-report-last-date-v1';
+let isRestoringDraft=false;
+const persistedIds=['incDay','incM1','incM2','incM3','incBreakfast','incLunch','incSnack','incDinner','incWater','incSupplement','incExercise','incMove','incSleep','incCraving','incFatigue','incBowel','incWeight','incNote','m1','m2','m3','breakfast','lunch','snack','dinner','water','otherDrink','supplement','exercise','move1','move2','move3','sleep','wake','awake','morning','sweet','caffeine','fatigue','bowel','weight','note'];
+function draftKey(){ return DRAFT_PREFIX+document.getElementById('reportDate').value; }
+function setSaveStatus(message){ const el=document.getElementById('saveStatus'); if(el)el.textContent=message; }
+function serializeForm(){
+ const data={};
+ persistedIds.forEach(id=>{const el=document.getElementById(id);if(!el)return;data[id]=el.type==='checkbox'?el.checked:el.value;});
+ ['r1','r2','r3'].forEach(name=>{const el=document.querySelector('input[name="'+name+'"]:checked');data[name]=el?el.value:'○';});
+ return data;
+}
+function saveDraft(){
+ if(isRestoringDraft)return;
+ const date=document.getElementById('reportDate').value;if(!date)return;
+ try{localStorage.setItem(draftKey(),JSON.stringify(serializeForm()));localStorage.setItem(LAST_DATE_KEY,date);const now=new Date();setSaveStatus('自動保存済み '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'));}
+ catch(e){setSaveStatus('自動保存できませんでした。ブラウザ設定をご確認ください。');}
+}
+function setMissionDefaults(){const dayNo=getDayNumber();if(!dayNo||!missionData[dayNo])return;document.getElementById('m1').value=missionData[dayNo][0];document.getElementById('m2').value=missionData[dayNo][1];document.getElementById('m3').value=missionData[dayNo][2];}
+function resetFormControls(){
+ isRestoringDraft=true;
+ persistedIds.forEach(id=>{const el=document.getElementById(id);if(!el)return;if(el.type==='checkbox')el.checked=true;else if(el.type==='range')el.value='0';else if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+ ['r1','r2','r3'].forEach(name=>{document.querySelectorAll('input[name="'+name+'"]').forEach((r,i)=>r.checked=i===0);});
+ setMissionDefaults();document.getElementById('sweetValue').textContent='0';document.getElementById('caffeineValue').textContent='0';document.getElementById('fatigueValue').textContent='0';document.getElementById('preview').textContent='';isRestoringDraft=false;
+}
+function restoreData(data){
+ isRestoringDraft=true;
+ persistedIds.forEach(id=>{const el=document.getElementById(id);if(!el||!(id in data))return;if(el.type==='checkbox')el.checked=Boolean(data[id]);else el.value=data[id];});
+ ['r1','r2','r3'].forEach(name=>{if(!(name in data))return;const radio=document.querySelector('input[name="'+name+'"][value="'+data[name]+'"]');if(radio)radio.checked=true;});
+ document.getElementById('sweetValue').textContent=document.getElementById('sweet').value;document.getElementById('caffeineValue').textContent=document.getElementById('caffeine').value;document.getElementById('fatigueValue').textContent=document.getElementById('fatigue').value;isRestoringDraft=false;
+}
+function loadDraftForSelectedDate(){
+ resetFormControls();
+ try{const raw=localStorage.getItem(draftKey());if(raw){restoreData(JSON.parse(raw));setSaveStatus('保存内容を復元しました');}else{setSaveStatus('この日付の入力を開始できます');}localStorage.setItem(LAST_DATE_KEY,document.getElementById('reportDate').value);}catch(e){setSaveStatus('保存内容を復元できませんでした');}
+}
+function resetCurrentDateDraft(){try{localStorage.removeItem(draftKey());}catch(e){}resetFormControls();setSaveStatus('LINE送付のため、この日付の入力内容をリセットしました');}
+function setupAutoSave(){document.addEventListener('input',e=>{if(e.target.id!=='reportDate')saveDraft();});document.addEventListener('change',e=>{if(e.target.id!=='reportDate')saveDraft();});}
 setDateLimits();
+try{const lastDate=localStorage.getItem(LAST_DATE_KEY);const input=document.getElementById('reportDate');if(lastDate&&lastDate>=input.min&&lastDate<=input.max)input.value=lastDate;}catch(e){}
+setupAutoSave();
 applyMissionByDate();
 </script>
 </body>
