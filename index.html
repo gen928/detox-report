@@ -134,6 +134,13 @@ button{
   <p class="notice-text">チェックを外した項目は、「LINEで送る」および「テキストでコピー」の対象から除外されます。</p>
 </div>
 
+
+<div class="card" id="weekInfoCard">
+  <h2>📅 今週のテーマ</h2>
+  <div class="day-status" id="weekTitle"></div>
+  <div class="small-note" id="weekDesc"></div>
+</div>
+
 <div class="card">
   <label class="check-label"><input type="checkbox" id="incDay" checked>DAY・日付</label>
   <label>日付を選択</label>
@@ -269,6 +276,33 @@ button{
 <div id="preview"></div>
 
 <script>
+
+const weekInfo=[
+{start:'2026-08-17',end:'2026-08-23',title:'WEEK 1｜Day1〜7',desc:'まずは「整える・減らす・観察する」'},
+{start:'2026-08-24',end:'2026-08-30',title:'WEEK 2｜Day8〜14',desc:'腸・肝臓・排泄を意識する ※この週は肉・魚お休み'},
+{start:'2026-08-31',end:'2026-09-06',title:'WEEK 3｜Day15〜21',desc:'代謝・エネルギーを意識する'},
+{start:'2026-09-07',end:'2026-09-13',title:'WEEK 4｜Day22〜28',desc:'再導入｜「自分の身体の取扱説明書」をつくる'}
+];
+function updateWeekInfo(){
+ const selectedValue=document.getElementById('reportDate').value;
+ if(!selectedValue){
+  document.getElementById('weekTitle').textContent='';
+  document.getElementById('weekDesc').textContent='';
+  return;
+ }
+ const selected=parseLocalDate(selectedValue);
+ for(const w of weekInfo){
+  const s=parseLocalDate(w.start); const e=parseLocalDate(w.end);
+  if(selected>=s && selected<=e){
+   document.getElementById('weekTitle').textContent=w.title;
+   document.getElementById('weekDesc').textContent=w.desc;
+   return;
+  }
+ }
+ document.getElementById('weekTitle').textContent='';
+ document.getElementById('weekDesc').textContent='';
+}
+
 const START_DATE = '2026-08-17';
 const END_DATE = '2026-09-13';
 const missionData = {
@@ -311,14 +345,15 @@ function setDateLimits(){
   const end=parseLocalDate(END_DATE);
   const today=new Date();
   const todayLocal=new Date(today.getFullYear(),today.getMonth(),today.getDate());
-  const tomorrowLocal=new Date(todayLocal);
-  tomorrowLocal.setDate(todayLocal.getDate()+1);
-  let maxAllowed=minDate(end, tomorrowLocal);
+  const sundayLocal=new Date(todayLocal);
+  const daysUntilSunday=(7-todayLocal.getDay())%7;
+  sundayLocal.setDate(todayLocal.getDate()+daysUntilSunday);
+  let maxAllowed=minDate(end, sundayLocal);
   if(maxAllowed < start){ maxAllowed = start; }
   const maxStr=formatYmd(maxAllowed);
   input.min=START_DATE;
   input.max=maxStr;
-  document.getElementById('dateLimitNote').textContent = `Day1は2026/8/17です。選択可能な日付は2026/8/17〜${toYmdSlash(maxStr)}です。日付に応じてMISSION①②③を自動入力します。`;
+  document.getElementById('dateLimitNote').textContent = `Day1は2026/8/17です。選択可能な日付は2026/8/17〜${toYmdSlash(maxStr)}（今週の日曜日）です。日付に応じてMISSION①②③を自動入力します。`;
   let defaultDate;
   if(todayLocal < start){ defaultDate = START_DATE; }
   else if(todayLocal > maxAllowed){ defaultDate = maxStr; }
@@ -344,6 +379,7 @@ function applyMissionByDate(){
   const dayNo=getDayNumber();
   if(!dayNo){ status.textContent='対象期間外です。選択可能な日付から選んでください。'; return; }
   status.textContent=`Day${dayNo}（${dateText}）`;
+  updateWeekInfo();
   const missions=missionData[dayNo];
   document.getElementById('m1').value=missions[0];
   document.getElementById('m2').value=missions[1];
