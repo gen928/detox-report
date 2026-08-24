@@ -94,6 +94,32 @@ button{
   font-weight:bold;
   color:var(--green);
 }
+
+.reset-area{
+  margin-top:42px;
+  padding-top:20px;
+  border-top:1px solid #d7d7d7;
+  display:flex;
+  justify-content:flex-end;
+}
+.resetBtn{
+  width:auto;
+  min-width:92px;
+  padding:9px 14px;
+  margin:0;
+  border:1px solid #aaa;
+  border-radius:8px;
+  background:#f2f2f2;
+  color:#666;
+  font-size:13px;
+}
+.reset-help{
+  margin:8px 0 0;
+  text-align:right;
+  color:#777;
+  font-size:12px;
+}
+
 #preview{
   white-space:pre-wrap;
   background:#fff;
@@ -124,6 +150,8 @@ button{
   .notice-text{color:#fff;}
   .small-note{color:#ccc;}
   .day-status{background:#18351f;color:#9be7aa;}
+  .resetBtn{background:#2b2b2b;color:#bbb;border-color:#666;}
+  .reset-help{color:#aaa;}
 }
 </style>
 </head>
@@ -277,6 +305,13 @@ button{
 <button class="lineBtn" onclick="sendLine()">LINEで送る</button>
 <button class="copyBtn" onclick="copyText()">テキストでコピー</button>
 <div id="preview"></div>
+
+<div class="reset-area">
+  <div>
+    <button class="resetBtn" type="button" onclick="resetSelectedDate()">この日をリセット</button>
+    <p class="reset-help">画面右下の小さいボタンです。確認後に実行します。</p>
+  </div>
+</div>
 
 <script>
 
@@ -455,6 +490,22 @@ function loadDraftForSelectedDate(){
  try{const raw=localStorage.getItem(draftKey());if(raw){restoreData(JSON.parse(raw));setSaveStatus('保存内容を復元しました');}else{setSaveStatus('この日付の入力を開始できます');}localStorage.setItem(LAST_DATE_KEY,document.getElementById('reportDate').value);}catch(e){setSaveStatus('保存内容を復元できませんでした');}
 }
 function resetCurrentDateDraft(){try{localStorage.removeItem(draftKey());}catch(e){}resetFormControls();setSaveStatus('LINE送付のため、この日付の入力内容をリセットしました');}
+function resetSelectedDate(){
+  const dateValue=document.getElementById('reportDate').value;
+  const dateText=toYmdSlash(dateValue);
+  const firstConfirm=confirm(dateText+' の入力・保存内容をリセットします。よろしいですか？');
+  if(!firstConfirm)return;
+  const secondConfirm=confirm('この操作は元に戻せません。本当にリセットしますか？');
+  if(!secondConfirm)return;
+  try{
+    localStorage.removeItem(draftKey());
+    resetFormControls();
+    setSaveStatus(dateText+' の入力・保存内容をリセットしました');
+    document.getElementById('preview').textContent='';
+  }catch(e){
+    alert('リセットできませんでした。ブラウザ設定をご確認ください。');
+  }
+}
 function setupAutoSave(){document.addEventListener('input',e=>{if(e.target.id!=='reportDate')saveDraft();});document.addEventListener('change',e=>{if(e.target.id!=='reportDate')saveDraft();});}
 setDateLimits();
 try{const lastDate=localStorage.getItem(LAST_DATE_KEY);const input=document.getElementById('reportDate');if(lastDate&&lastDate>=input.min&&lastDate<=input.max)input.value=lastDate;}catch(e){}
